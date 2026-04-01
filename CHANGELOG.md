@@ -1,3 +1,16 @@
+### v2.6.0 - April 1, 2026
+
+- Rebranded extension identity to GPTgps (name/description/icon refresh)
+- Added robust conversation navigation sidebar for ChatGPT long-task workflows
+- Added segment-based organization with manual split and rename
+- Added Mark checkpoints with jump and reposition capabilities
+- Added pin/search/note flow for prompt and marker timeline items
+- Added AI summary pipeline with provider switching and diagnostics
+- Added summary language option (Chinese/English) and summary-length strategies
+- Added per-segment scroll restoration and active-entry/session view restoration
+- Added segment AI runtime status badges (queued/running/ready/failed/fallback)
+- Improved wheel/scroll behavior for segment headers and item lists
+
 ### v2.5.1
 
 - Cloud Syncing

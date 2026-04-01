@@ -1,6 +1,6 @@
 {
   "appName": {
-    "message": "ChatGPT 智能提示"
+    "message": "GPTgps"
   },
   "appDesc": {
     "message": "发现、分享、导入并使用最佳的ChatGPT提示，保存您的聊天记录到本地（前身为ChatGPT历史记录）"
@@ -376,7 +376,7 @@
   "cloud_disclaimer": {
     "message": "注意：为了使同步正常工作，您必须登录相同的 Google 帐户。"
   },
-  "cloud-rearrange": {
+  "cloud_rearrange": {
     "message": "启用同步后，可在链接的电子表格中拖动行以重新排列提示"
   },
   "link_sheet": {

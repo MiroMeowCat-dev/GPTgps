@@ -1,9 +1,27 @@
 {
   "manifest_version": 2,
-  "name": "__MSG_appName__",
-  "description": "__MSG_appDesc__",
-  "version": "2.5.1",
-  "permissions": ["storage", "unlimitedStorage", "contextMenus"],
+  "name": "GPTgps",
+  "description": "GPTgps: ChatGPT conversation navigator with segments, marks, pins, and AI summaries.",
+  "version": "2.6.0",
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "contextMenus",
+    "permissions",
+    "https://api.openai.com/*",
+    "https://dashscope.aliyuncs.com/*",
+    "https://dashscope-intl.aliyuncs.com/*",
+    "https://dashscope-us.aliyuncs.com/*",
+    "https://coding.dashscope.aliyuncs.com/*",
+    "https://coding-intl.dashscope.aliyuncs.com/*",
+    "https://*.dashscope.aliyuncs.com/*",
+    "https://api.minimax.io/*",
+    "https://api.minimax.com/*",
+    "https://api.minimaxi.com/*"
+  ],
+  "optional_permissions": [
+    "https://*/*"
+  ],
   "background": {
     "persistent": false,
     "scripts": [
@@ -15,6 +33,11 @@
       "matches": ["https://chat.openai.com/chat*"],
       "js": ["content-scripts/utility.js", "content-scripts/translate.js", "content-scripts/scraperv2.js", "content-scripts/historyv2.js", "content-scripts/prompt-inject.js", "content-scripts/export.js","content-scripts/export-inject.js", "content-scripts/themes.js"
       ,"external-js/html2canvas.js", "external-js/jspdf.umd.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["content-scripts/chat-nav-sidebar.js"],
       "run_at": "document_idle"
     },
     {
@@ -30,7 +53,7 @@
   ],
   "web_accessible_resources" : ["content-scripts/*" ,"themes/*", "external-js/*", "_locales/*"],
   "browser_action": {
-    "default_title": "ChatGPT Prompt Genius"
+    "default_title": "GPTgps"
   },
   "default_locale": "en",
   "icons":{
