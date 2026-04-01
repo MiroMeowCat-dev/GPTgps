@@ -1997,6 +1997,140 @@
     return changed;
   }
 
+  function shouldTreatDomPromptsAsAuthoritative(parsedPrompts, dedupedVisiblePromptIds) {
+    var parsedCount = Array.isArray(parsedPrompts) ? parsedPrompts.length : 0;
+    var visibleCount = Array.isArray(dedupedVisiblePromptIds) ? dedupedVisiblePromptIds.length : 0;
+    if (!parsedCount || !visibleCount) {
+      return false;
+    }
+
+    var knownOrder = Array.isArray(state.promptOrder)
+      ? state.promptOrder.filter(function (id) {
+          return Boolean(id) && Boolean(state.promptCatalog[id]);
+        })
+      : [];
+    var knownCount = knownOrder.length;
+    if (!knownCount) {
+      return true;
+    }
+    if (visibleCount >= knownCount) {
+      return true;
+    }
+
+    var coverage = visibleCount / Math.max(1, knownCount);
+    if (coverage >= 0.72) {
+      return true;
+    }
+    if (knownCount <= 30 && coverage >= 0.55) {
+      return true;
+    }
+
+    var firstKnownId = knownOrder[0];
+    var lastKnownId = knownOrder[knownOrder.length - 1];
+    var firstKnownText = normalizeWhitespace(firstKnownId && state.promptCatalog[firstKnownId] ? state.promptCatalog[firstKnownId].text : '');
+    var lastKnownText = normalizeWhitespace(lastKnownId && state.promptCatalog[lastKnownId] ? state.promptCatalog[lastKnownId].text : '');
+    var firstDomText = normalizeWhitespace(parsedPrompts[0] && parsedPrompts[0].text ? parsedPrompts[0].text : '');
+    var lastDomText = normalizeWhitespace(parsedPrompts[parsedCount - 1] && parsedPrompts[parsedCount - 1].text ? parsedPrompts[parsedCount - 1].text : '');
+
+    if (firstKnownText && lastKnownText && firstDomText && lastDomText) {
+      if (firstKnownText === firstDomText && lastKnownText !== lastDomText && coverage >= 0.45) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function prunePromptCatalogByDomSnapshot(parsedPrompts, visiblePromptIds) {
+    if (!Array.isArray(visiblePromptIds) || !visiblePromptIds.length) {
+      return false;
+    }
+
+    var dedupedVisible = [];
+    var visibleSet = new Set();
+    for (var i = 0; i < visiblePromptIds.length; i += 1) {
+      var id = visiblePromptIds[i];
+      if (!id || visibleSet.has(id) || !state.promptCatalog[id]) {
+        continue;
+      }
+      visibleSet.add(id);
+      dedupedVisible.push(id);
+    }
+    if (!dedupedVisible.length) {
+      return false;
+    }
+    if (!shouldTreatDomPromptsAsAuthoritative(parsedPrompts, dedupedVisible)) {
+      return false;
+    }
+
+    var oldOrder = Array.isArray(state.promptOrder)
+      ? state.promptOrder.filter(function (id) {
+          return Boolean(id) && Boolean(state.promptCatalog[id]);
+        })
+      : [];
+    var oldSet = new Set(oldOrder);
+    var removedIds = [];
+    oldSet.forEach(function (id) {
+      if (!visibleSet.has(id)) {
+        removedIds.push(id);
+      }
+    });
+
+    var nextCatalog = {};
+    for (var j = 0; j < dedupedVisible.length; j += 1) {
+      var keepId = dedupedVisible[j];
+      if (state.promptCatalog[keepId]) {
+        nextCatalog[keepId] = state.promptCatalog[keepId];
+      }
+    }
+
+    var changed = removedIds.length > 0 || dedupedVisible.length !== oldOrder.length;
+    if (!changed) {
+      for (var orderIdx = 0; orderIdx < dedupedVisible.length; orderIdx += 1) {
+        if (dedupedVisible[orderIdx] !== oldOrder[orderIdx]) {
+          changed = true;
+          break;
+        }
+      }
+    }
+    if (!changed) {
+      return false;
+    }
+
+    state.promptCatalog = nextCatalog;
+    state.promptOrder = dedupedVisible;
+
+    for (var removeIdx = 0; removeIdx < removedIds.length; removeIdx += 1) {
+      var removedId = removedIds[removeIdx];
+      state.pins.delete(removedId);
+      state.manualSplitStarts.delete(removedId);
+      state.markerSplitStarts.delete(removedId);
+      state.noteEditorOpen.delete(removedId);
+      delete state.notes[removedId];
+      delete state.customSegmentTitles[removedId];
+      delete state.aiItemSummaries[removedId];
+      delete state.aiItemErrors[removedId];
+      if (state.aiItemPending && state.aiItemPending[removedId]) {
+        delete state.aiItemPending[removedId];
+      }
+      if (state.activePromptId === removedId) {
+        state.activePromptId = '';
+      }
+      if (state.activeEntryId === removedId) {
+        state.activeEntryId = '';
+      }
+    }
+
+    Object.keys(state.fallbackContextLocks || {}).forEach(function (contextKey) {
+      var lockedPromptId = state.fallbackContextLocks[contextKey];
+      if (!visibleSet.has(lockedPromptId)) {
+        delete state.fallbackContextLocks[contextKey];
+      }
+    });
+
+    return true;
+  }
+
   function buildSegments(prompts) {
     var segments = [];
     var promptById = new Map();
@@ -3952,6 +4086,10 @@
 
     if (mergePromptOrderWithVisible(visiblePromptIds)) {
       catalogChanged = true;
+    }
+    if (prunePromptCatalogByDomSnapshot(parsedPrompts, visiblePromptIds)) {
+      catalogChanged = true;
+      visiblePromptIds = state.promptOrder.slice();
     }
     if (pruneLegacyTurnPromptIdsWhenModernExists()) {
       catalogChanged = true;
@@ -7926,7 +8064,19 @@
     var observer = new MutationObserver(function (mutations) {
       for (var i = 0; i < mutations.length; i += 1) {
         var mutation = mutations[i];
-        if (!mutation || mutation.type !== 'childList') {
+        if (!mutation) {
+          continue;
+        }
+
+        if (mutation.type === 'characterData') {
+          if (isUserPromptRelatedNode(mutation.target)) {
+            scheduleRefresh();
+            return;
+          }
+          continue;
+        }
+
+        if (mutation.type !== 'childList') {
           continue;
         }
 
@@ -7951,7 +8101,7 @@
       }
     });
 
-    observer.observe(document.body, { subtree: true, childList: true });
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
 
     setInterval(function () {
       if (window.location.pathname !== state.currentPath) {
