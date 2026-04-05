@@ -110,16 +110,108 @@ function getConversations(offset=0, limit=100, authToken=myAuth){
     })
 }
 
+function buildImageOnlyMessagePlaceholder(imageCount=0) {
+    if (Number(imageCount) > 1) {
+        return `[Image-only message: ${imageCount} images]`
+    }
+    return `[Image-only message]`
+}
+
+function normalizeMessageTextValue(value) {
+    if (typeof value === "string") {
+        return value.trim()
+    }
+    if (value && typeof value === "object" && typeof value.value === "string") {
+        return value.value.trim()
+    }
+    return ""
+}
+
+function looksLikeImageMessagePart(part) {
+    if (!part || typeof part !== "object") {
+        return false
+    }
+    let directType = String(part.content_type || part.type || part.mime_type || part.asset_type || "").toLowerCase()
+    if (directType && (directType.includes("image") || directType.includes("asset") || directType.includes("multimodal") || directType.includes("vision"))) {
+        return true
+    }
+    try {
+        let serialized = JSON.stringify(part).toLowerCase()
+        return serialized.includes("image") || serialized.includes("image_url") || serialized.includes("asset_pointer") || serialized.includes("multimodal")
+    }
+    catch (error) {
+        return false
+    }
+}
+
+function extractConversationNodeText(node) {
+    let content = node?.message?.content
+    if (!content || typeof content !== "object") {
+        return ""
+    }
+
+    let parts = Array.isArray(content.parts) ? content.parts : []
+    let textParts = []
+    let imageCount = 0
+    let sawObjectPart = false
+
+    function pushText(value) {
+        let normalized = normalizeMessageTextValue(value)
+        if (normalized) {
+            textParts.push(normalized)
+        }
+    }
+
+    for (let part of parts) {
+        if (typeof part === "string") {
+            pushText(part)
+            continue
+        }
+        if (!part || typeof part !== "object") {
+            continue
+        }
+        sawObjectPart = true
+        pushText(part.text)
+        pushText(part.content)
+        pushText(part.value)
+        pushText(part.caption)
+        if (looksLikeImageMessagePart(part)) {
+            imageCount += 1
+        }
+    }
+
+    if (!parts.length) {
+        pushText(content.text)
+        pushText(content.content)
+        pushText(content.value)
+    }
+
+    if (textParts.length) {
+        return textParts.join("\n").trim()
+    }
+
+    let contentType = String(content.content_type || content.type || "").toLowerCase()
+    if (!imageCount && looksLikeImageMessagePart(content)) {
+        imageCount = 1
+    }
+    if (imageCount > 0 || (sawObjectPart && (contentType.includes("image") || contentType.includes("multimodal") || contentType.includes("vision")))) {
+        return buildImageOnlyMessagePlaceholder(imageCount)
+    }
+
+    return ""
+}
+
 function convoToTree(obj, id) {
     const messages = obj["mapping"]
     let firstItem = findTopParent(obj.current_node, messages)
     let tree = new TreeNode(null)
     let convo = []
     function buildTree(node, tree){
-        let newTree = new TreeNode(node.message.content.parts[0])
+        let messageText = extractConversationNodeText(node)
+        let newTree = new TreeNode(messageText)
         tree.addLeaf(newTree)
         if (tree.currentLeafIndex === 0){
-            convo.push(node.message.content.parts[0])
+            convo.push(messageText)
         }
         for (let each of node.children){
             buildTree(messages[each], newTree)

@@ -2009,6 +2009,94 @@
     };
   }
 
+  function buildImageOnlyPromptPlaceholder(imageCount) {
+    var count = Number(imageCount) || 0;
+    if (count > 1) {
+      return '[Image-only message: ' + count + ' images]';
+    }
+    return '[Image-only message]';
+  }
+
+  function isLikelyPromptImageElement(element) {
+    if (!element || element.nodeType !== 1) {
+      return false;
+    }
+    if (element.closest && element.closest('button, svg, symbol, defs, clipPath, mask')) {
+      return false;
+    }
+
+    var tagName = String(element.tagName || '').toLowerCase();
+    var width = Number(element.naturalWidth || element.videoWidth || element.width || element.clientWidth || 0);
+    var height = Number(element.naturalHeight || element.videoHeight || element.height || element.clientHeight || 0);
+    var alt = normalizeWhitespace(element.getAttribute ? element.getAttribute('alt') || '' : '');
+    var ariaLabel = normalizeWhitespace(element.getAttribute ? element.getAttribute('aria-label') || '' : '');
+    var dataTestId = normalizeWhitespace(element.getAttribute ? element.getAttribute('data-testid') || '' : '');
+    var src = normalizeWhitespace(element.getAttribute ? element.getAttribute('src') || '' : '');
+    var descriptiveLabel = alt || ariaLabel || dataTestId;
+
+    if (tagName === 'img') {
+      if (/^(blob:|data:image\/)/i.test(src)) {
+        return true;
+      }
+      if (descriptiveLabel && /(image|photo|picture|screenshot|upload|attachment)/i.test(descriptiveLabel)) {
+        return true;
+      }
+      return width >= 64 && height >= 64;
+    }
+
+    if (tagName === 'canvas') {
+      return width >= 64 && height >= 64;
+    }
+
+    return descriptiveLabel && /(image|photo|picture|screenshot|upload|attachment)/i.test(descriptiveLabel);
+  }
+
+  function countPromptImageAttachments(node) {
+    if (!node || !node.querySelectorAll) {
+      return 0;
+    }
+
+    var candidates = dedupeElements(queryAllBySelectors([
+      'img',
+      'canvas',
+      '[data-testid*="image"]',
+      '[data-testid*="attachment"]',
+      '[aria-label*="image" i]',
+      '[aria-label*="photo" i]',
+      '[aria-label*="picture" i]',
+      '[aria-label*="screenshot" i]'
+    ], node));
+    var meaningful = [];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var candidate = candidates[i];
+      if (!isLikelyPromptImageElement(candidate)) {
+        continue;
+      }
+
+      var merged = false;
+      for (var j = 0; j < meaningful.length; j += 1) {
+        var existing = meaningful[j];
+        if (!existing || existing === candidate) {
+          merged = true;
+          break;
+        }
+        if (existing.contains && existing.contains(candidate)) {
+          merged = true;
+          break;
+        }
+        if (candidate.contains && candidate.contains(existing)) {
+          meaningful[j] = candidate;
+          merged = true;
+          break;
+        }
+      }
+      if (!merged) {
+        meaningful.push(candidate);
+      }
+    }
+    return meaningful.length;
+  }
+
   function getPromptText(node) {
     var provider = getCurrentSiteProvider();
     if (provider === 'doubao' && node && node.querySelector) {
@@ -2062,7 +2150,17 @@
       }
     }
     var raw = node.innerText || node.textContent || '';
-    return normalizeWhitespace(raw);
+    var normalized = normalizeWhitespace(raw);
+    if (normalized) {
+      return normalized;
+    }
+
+    var imageCount = countPromptImageAttachments(node);
+    if (imageCount > 0) {
+      return buildImageOnlyPromptPlaceholder(imageCount);
+    }
+
+    return '';
   }
 
   function isAssistantPromptRelatedNode(node) {
@@ -3242,7 +3340,7 @@
       segmentId: segment.id,
       startPromptId: segment.startPromptId,
       fingerprint: fingerprint,
-      promptCount: promptTexts.length,
+      promptCount: segmentPrompts.length,
       firstPrompt: firstText,
       lastPrompt: lastText,
       prompts: promptTexts,
