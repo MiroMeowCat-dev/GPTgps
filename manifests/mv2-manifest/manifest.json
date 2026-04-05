@@ -8,6 +8,7 @@
     "unlimitedStorage",
     "contextMenus",
     "permissions",
+    "tabs",
     "https://api.openai.com/*",
     "https://dashscope.aliyuncs.com/*",
     "https://dashscope-intl.aliyuncs.com/*",
@@ -31,23 +32,13 @@
   "content_scripts": [
     {
       "matches": ["https://chat.openai.com/chat*"],
-      "js": ["content-scripts/utility.js", "content-scripts/translate.js", "content-scripts/scraperv2.js", "content-scripts/historyv2.js", "content-scripts/prompt-inject.js", "content-scripts/export.js","content-scripts/export-inject.js", "content-scripts/themes.js"
+      "js": ["content-scripts/utility.js", "content-scripts/translate.js", "content-scripts/scraperv2.js", "content-scripts/historyv2.js", "content-scripts/export.js","content-scripts/export-inject.js", "content-scripts/themes.js"
       ,"external-js/html2canvas.js", "external-js/jspdf.umd.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*", "https://gemini.google.com/*", "https://chat.qwen.ai/*", "https://qwen.ai/*", "https://www.qwen.ai/*", "https://tongyi.com/*", "https://www.tongyi.com/*", "https://qianwen.com/*", "https://www.qianwen.com/*", "https://doubao.com/*", "https://www.doubao.com/*", "https://claude.ai/*"],
       "js": ["content-scripts/chat-nav-sidebar.js"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://www.reddit.com/r/ChatGPTPromptGenius/submit*"],
-      "js": ["content-scripts/reddit/submit.js"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://www.reddit.com/r/ChatGPTPromptGenius/*"],
-      "js": ["content-scripts/reddit/savePrompt.js"],
       "run_at": "document_idle"
     }
   ],

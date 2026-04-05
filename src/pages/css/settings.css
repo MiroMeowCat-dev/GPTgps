@@ -1,27 +1,635 @@
-#cover {position: fixed; height: 100%; width: 190px; top:0; left: 0; background: #202123; z-index:9999;}
-main{
-    margin-left : 201px;
-    margin-right: 12px;
+:root {
+    --settings-text: #eaf6ef;
+    --settings-text-soft: #b4c6bb;
+    --settings-accent: #7dd9a9;
+    --settings-accent-strong: #cdf4de;
+    --settings-bg-0: #091015;
+    --settings-bg-1: #0f171d;
+    --settings-bg-2: #121e25;
+    --settings-surface: rgba(18, 24, 28, 0.9);
+    --settings-surface-strong: rgba(14, 20, 24, 0.96);
+    --settings-line: rgba(145, 175, 161, 0.14);
+    --settings-line-strong: rgba(145, 175, 161, 0.28);
+    --settings-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+    --settings-chip: rgba(255, 255, 255, 0.03);
+    --settings-chip-strong: rgba(255, 255, 255, 0.06);
+    --settings-panel-highlight: rgba(125, 217, 169, 0.13);
+    --settings-top-glow: radial-gradient(120% 56% at 0% 0%, rgba(125, 217, 169, 0.16) 0%, rgba(125, 217, 169, 0.04) 22%, rgba(255, 255, 255, 0) 58%);
+    --settings-top-glow-secondary: radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.04) 0%, transparent 18%);
+    --settings-button-bg: rgba(255, 255, 255, 0.032);
+    --settings-button-hover: rgba(125, 217, 169, 0.08);
+    --settings-input-bg: rgba(255, 255, 255, 0.032);
+    --settings-input-hover: rgba(255, 255, 255, 0.055);
+    --settings-input-active: rgba(255, 255, 255, 0.07);
+    --settings-panel-radius: 22px;
+    --settings-inner-radius: 18px;
+    --settings-pill-radius: 999px;
 }
 
-.table{
-    width: 800px;
+* {
+    box-sizing: border-box;
 }
 
-.w-60{
-    width: 60%;
+html,
+body {
+    margin: 0;
+    min-height: 100%;
 }
 
-body.dark{
-    background-color: #343541;
-}
-.dark{
-    color: #D1D5DA;
-}
-#defaultMessageInput{
-    height: 170px
+body {
+    background:
+        var(--settings-top-glow),
+        var(--settings-top-glow-secondary),
+        linear-gradient(180deg, var(--settings-bg-0) 0%, var(--settings-bg-1) 48%, var(--settings-bg-2) 100%);
+    color: var(--settings-text);
+    font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
-.text-xs{
-    font-size: 10pt;
+body[data-page-theme-provider="gemini"] {
+    --settings-text: #e8eaed;
+    --settings-text-soft: #bdc1c6;
+    --settings-accent: #8ab4f8;
+    --settings-accent-strong: #dbe8ff;
+    --settings-bg-0: #1b1d20;
+    --settings-bg-1: #202124;
+    --settings-bg-2: #25282d;
+    --settings-surface: rgba(32, 33, 36, 0.93);
+    --settings-surface-strong: rgba(28, 29, 32, 0.98);
+    --settings-line: rgba(232, 234, 237, 0.08);
+    --settings-line-strong: rgba(138, 180, 248, 0.24);
+    --settings-shadow: 0 16px 36px rgba(0, 0, 0, 0.34);
+    --settings-top-glow: radial-gradient(120% 56% at 0% 0%, rgba(102, 157, 246, 0.16) 0%, rgba(102, 157, 246, 0.04) 22%, rgba(255, 255, 255, 0) 58%);
+    --settings-top-glow-secondary: radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.025) 0%, transparent 18%);
+    --settings-button-bg: rgba(255, 255, 255, 0.032);
+    --settings-button-hover: rgba(138, 180, 248, 0.08);
+    --settings-input-bg: rgba(255, 255, 255, 0.035);
+    --settings-input-hover: rgba(255, 255, 255, 0.05);
+    --settings-input-active: rgba(138, 180, 248, 0.08);
+}
+
+body[data-page-theme-provider="qwen"] {
+    --settings-text: #233247;
+    --settings-text-soft: rgba(49, 69, 95, 0.82);
+    --settings-accent: #6daef7;
+    --settings-accent-strong: #233247;
+    --settings-bg-0: #eef3f8;
+    --settings-bg-1: #e7edf4;
+    --settings-bg-2: #dde6ef;
+    --settings-surface: rgba(241, 245, 250, 0.58);
+    --settings-surface-strong: rgba(230, 236, 243, 0.72);
+    --settings-line: rgba(182, 193, 209, 0.44);
+    --settings-line-strong: rgba(137, 186, 239, 0.4);
+    --settings-shadow: 0 20px 42px rgba(104, 122, 151, 0.12), 0 10px 22px rgba(98, 116, 144, 0.06);
+    --settings-top-glow: radial-gradient(112% 54% at 0% 0%, rgba(126, 180, 255, 0.12) 0%, rgba(126, 180, 255, 0.03) 30%, rgba(255, 255, 255, 0) 62%), linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.015) 100%);
+    --settings-top-glow-secondary: radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.24) 0%, transparent 18%);
+    --settings-button-bg: rgba(243, 246, 250, 0.42);
+    --settings-button-hover: rgba(247, 249, 252, 0.62);
+    --settings-input-bg: rgba(226, 231, 238, 0.72);
+    --settings-input-hover: rgba(231, 235, 241, 0.84);
+    --settings-input-active: rgba(231, 235, 241, 0.92);
+}
+
+body[data-page-theme-provider="doubao"] {
+    --settings-text: #203145;
+    --settings-text-soft: rgba(68, 86, 112, 0.84);
+    --settings-accent: #7caee6;
+    --settings-accent-strong: #1f3955;
+    --settings-bg-0: #edf3f9;
+    --settings-bg-1: #e6edf5;
+    --settings-bg-2: #dae4ee;
+    --settings-surface: rgba(248, 250, 253, 0.74);
+    --settings-surface-strong: rgba(239, 244, 250, 0.9);
+    --settings-line: rgba(196, 208, 224, 0.58);
+    --settings-line-strong: rgba(149, 184, 232, 0.56);
+    --settings-shadow: 0 14px 28px rgba(103, 120, 148, 0.11);
+    --settings-top-glow: radial-gradient(112% 56% at 0% 0%, rgba(126, 172, 234, 0.14) 0%, rgba(126, 172, 234, 0.04) 28%, rgba(255, 255, 255, 0) 62%);
+    --settings-top-glow-secondary: radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.28) 0%, transparent 18%);
+    --settings-button-bg: rgba(249, 251, 254, 0.76);
+    --settings-button-hover: rgba(244, 248, 253, 0.96);
+    --settings-input-bg: rgba(247, 249, 252, 0.86);
+    --settings-input-hover: rgba(250, 252, 255, 0.96);
+    --settings-input-active: rgba(252, 253, 255, 1);
+}
+
+body[data-page-theme-provider="claude"] {
+    --settings-text: #f1e9de;
+    --settings-text-soft: rgba(225, 215, 201, 0.84);
+    --settings-accent: #d0a66d;
+    --settings-accent-strong: #fff0d7;
+    --settings-bg-0: #23201c;
+    --settings-bg-1: #2c2824;
+    --settings-bg-2: #34302b;
+    --settings-surface: rgba(44, 40, 36, 0.93);
+    --settings-surface-strong: rgba(40, 36, 32, 0.98);
+    --settings-line: rgba(241, 233, 222, 0.08);
+    --settings-line-strong: rgba(220, 195, 161, 0.22);
+    --settings-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+    --settings-top-glow: radial-gradient(120% 58% at 0% 0%, rgba(203, 166, 122, 0.16) 0%, rgba(203, 166, 122, 0.05) 24%, rgba(255, 255, 255, 0) 62%);
+    --settings-top-glow-secondary: radial-gradient(circle at 84% 12%, rgba(255, 248, 240, 0.02) 0%, transparent 18%);
+    --settings-button-bg: rgba(255, 248, 240, 0.03);
+    --settings-button-hover: rgba(214, 183, 146, 0.08);
+    --settings-input-bg: rgba(255, 248, 240, 0.04);
+    --settings-input-hover: rgba(255, 248, 240, 0.055);
+    --settings-input-active: rgba(214, 183, 146, 0.08);
+}
+
+#cover {
+    position: fixed;
+    inset: 0;
+    background: var(--settings-bg-0);
+    z-index: 9999;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.settings-shell {
+    position: relative;
+    overflow: visible;
+    width: min(1220px, calc(100vw - 40px));
+    margin: 0 auto;
+    padding: 18px 0 44px;
+}
+
+.settings-hero,
+.settings-panel {
+    border: 1px solid var(--settings-line);
+    border-radius: var(--settings-panel-radius);
+    background: linear-gradient(180deg, var(--settings-surface) 0%, var(--settings-surface-strong) 100%);
+    box-shadow: var(--settings-shadow);
+    backdrop-filter: blur(18px) saturate(118%);
+    -webkit-backdrop-filter: blur(18px) saturate(118%);
+}
+
+.settings-hero {
+    padding: 24px 28px 28px;
+}
+
+.settings-panel {
+    position: relative;
+    overflow: visible;
+    margin-top: 18px;
+    padding: 24px 28px;
+    z-index: 1;
+}
+
+.settings-panel-workspace {
+    z-index: 30;
+}
+
+.settings-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.settings-brand {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.settings-brand-mark,
+.settings-copy h1,
+.panel-head h2 {
+    font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    letter-spacing: -0.04em;
+}
+
+.settings-brand-mark {
+    font-size: clamp(1.7rem, 2.5vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1;
+}
+
+.settings-brand-note,
+.eyebrow,
+.section-kicker,
+.link-kicker,
+.picker-kicker,
+.status-chip-label {
+    color: var(--settings-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.76rem;
+}
+
+.settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.chrome-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid var(--settings-line);
+    border-radius: var(--settings-pill-radius);
+    background: var(--settings-button-bg);
+    color: inherit;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.chrome-button:hover,
+.chrome-button:focus-visible {
+    border-color: var(--settings-line-strong);
+    background: var(--settings-button-hover);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transform: none;
+    outline: none;
+}
+
+.settings-copy {
+    max-width: 860px;
+    margin-top: 52px;
+}
+
+.settings-copy h1,
+.panel-head h2 {
+    margin: 0;
+}
+
+.settings-copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.5rem, 5vw, 4.4rem);
+    font-weight: 700;
+    line-height: 0.98;
+}
+
+.settings-text,
+.panel-text,
+.setting-note,
+.link-card span:last-child,
+.control-hint {
+    color: var(--settings-text-soft);
+    line-height: 1.75;
+}
+
+.settings-text {
+    max-width: 48rem;
+    margin: 18px 0 0;
+    font-size: 1.05rem;
+}
+
+.hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 46px;
+    padding: 0 16px;
+    border: 1px solid var(--settings-line);
+    border-radius: var(--settings-pill-radius);
+    background: var(--settings-chip);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.status-chip strong {
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.panel-head {
+    max-width: 760px;
+}
+
+.panel-head h2 {
+    font-size: clamp(1.45rem, 2vw, 1.95rem);
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.panel-text {
+    margin: 14px 0 0;
+}
+
+.settings-list {
+    margin-top: 20px;
+    border-top: 1px solid var(--settings-line);
+}
+
+.setting-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 22px;
+    align-items: center;
+    min-height: 118px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--settings-line);
+}
+
+.setting-label {
+    margin: 0;
+    font-size: 1.14rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.setting-note {
+    max-width: 45rem;
+    margin: 9px 0 0;
+}
+
+.setting-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 280px;
+}
+
+.picker {
+    position: relative;
+    width: min(360px, 100%);
+    z-index: 1;
+}
+
+.picker.is-open {
+    z-index: 90;
+}
+
+.picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 72px;
+    padding: 14px 18px;
+    border: 1px solid var(--settings-line);
+    border-radius: var(--settings-panel-radius);
+    background: var(--settings-input-bg);
+    color: var(--settings-text);
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.picker-trigger:hover,
+.picker-trigger:focus-visible {
+    border-color: var(--settings-line-strong);
+    background: var(--settings-input-hover);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transform: none;
+    outline: none;
+}
+
+.picker.is-open .picker-trigger {
+    border-color: var(--settings-line-strong);
+    background: var(--settings-input-active);
+}
+
+.picker-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.picker-value {
+    font-size: 1.22rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.picker-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--settings-line-strong);
+    border-radius: var(--settings-panel-radius);
+    background: linear-gradient(180deg, var(--settings-surface) 0%, var(--settings-surface-strong) 100%);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(18px) saturate(118%);
+    -webkit-backdrop-filter: blur(18px) saturate(118%);
+    z-index: 120;
+}
+
+.picker-option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 50px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: var(--settings-inner-radius);
+    background: transparent;
+    color: var(--settings-text);
+    cursor: pointer;
+    text-align: left;
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.picker-option:hover,
+.picker-option:focus-visible {
+    background: var(--settings-button-hover);
+    color: var(--settings-accent-strong);
+    outline: none;
+}
+
+.picker-option.is-selected {
+    background: var(--settings-input-active);
+    color: var(--settings-accent-strong);
+}
+
+.control-hint {
+    margin: 0;
+    text-align: right;
+}
+
+.toggle-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.setting-toggle {
+    width: 58px;
+    height: 32px;
+    appearance: none;
+    border-radius: var(--settings-pill-radius);
+    border: 1px solid var(--settings-line);
+    background: var(--settings-input-bg);
+    position: relative;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease;
+}
+
+.setting-toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f8fbf9;
+    transition: transform 160ms ease;
+}
+
+.setting-toggle:checked {
+    background: var(--settings-button-hover);
+    border-color: var(--settings-line-strong);
+}
+
+.setting-toggle:checked::after {
+    transform: translateX(26px);
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.link-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 180px;
+    padding: 22px;
+    border: 1px solid var(--settings-line);
+    border-radius: var(--settings-panel-radius);
+    background: var(--settings-button-bg);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.link-card strong {
+    font-size: 1.24rem;
+    letter-spacing: -0.03em;
+}
+
+.link-card:hover,
+.link-card:focus-visible {
+    border-color: var(--settings-line-strong);
+    background: var(--settings-button-hover);
+    transform: none;
+    outline: none;
+}
+
+.link-card-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.link-card-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.profile-avatar {
+    width: 76px;
+    height: 76px;
+    border: 1px solid var(--settings-line-strong);
+    border-radius: 20px;
+    object-fit: cover;
+    background: var(--settings-button-bg);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+    flex: 0 0 auto;
+}
+
+@media (max-width: 1024px) {
+    .settings-shell {
+        width: calc(100vw - 18px);
+    }
+
+    .settings-topbar,
+    .setting-row {
+        grid-template-columns: 1fr;
+        align-items: flex-start;
+    }
+
+    .settings-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .settings-actions {
+        justify-content: flex-start;
+    }
+
+    .setting-control {
+        width: 100%;
+        align-items: flex-start;
+        min-width: 0;
+    }
+
+    .control-hint {
+        text-align: left;
+    }
+
+    .link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .settings-hero,
+    .settings-panel {
+        padding-left: 18px;
+        padding-right: 18px;
+        border-radius: 26px;
+    }
+
+    .settings-copy {
+        margin-top: 30px;
+    }
+
+    .settings-copy h1 {
+        max-width: none;
+        font-size: clamp(2.3rem, 11vw, 4rem);
+    }
+
+    .settings-actions {
+        width: 100%;
+    }
+
+    .settings-actions .chrome-button {
+        width: calc(50% - 5px);
+    }
+
+    .picker {
+        width: 100%;
+    }
+
+    .picker-trigger {
+        min-height: 66px;
+    }
 }

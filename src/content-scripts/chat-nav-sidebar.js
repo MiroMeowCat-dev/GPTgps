@@ -603,6 +603,10 @@
 
   function buildConversationStateSnapshot() {
     return {
+      conversationId: state.conversationId || '',
+      provider: getCurrentSiteProvider() || '',
+      pageUrl: window.location.href,
+      pageTitle: document.title || '',
       pins: Array.from(state.pins),
       notes: state.notes,
       markers: state.markers,

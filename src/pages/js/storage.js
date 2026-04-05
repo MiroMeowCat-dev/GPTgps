@@ -1,216 +1,153 @@
-// these are now "general" export import functions
-// TODO: import settings as well
-function exportFiles(h = true, p = true, s = true)
-{
-    chrome.storage.local.get(['threads','prompts', 'settings'], function (result) {
-        let threads = result.threads ?? [];
-        let prompts = result.prompts ?? [];
-        let settings = result.settings ?? [];
-        let title = ""
+const NAV_STORAGE_PREFIX = "cng_nav_v1:";
 
-        let data = {};
-        if (h){
-            data.threads = threads
-            title += "-History"
-        }
-        if (p){
-            data.prompts = prompts
-            title += "-Prompts"
-        }
-        if (s){
-            data.settings = settings
-            title += "-Settings"
-        }
-
-        let string = JSON.stringify(data);
-        let blob = encodeStringAsBlob(string);
-        let currentTimeString = (new Date()).toJSON();
-        let filename = `ChatGPT-Prompt-Genius-Archive${title}_${currentTimeString}.txt`;
-        downloadBlobAsFile(blob, filename);
-    });
+function downloadBlobAsFile(blob, fileName) {
+    const anchor = document.createElement("a");
+    const url = window.URL.createObjectURL(blob);
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
 }
 
-// basially using the fileSaver.js, it's an IIFE to save on implementing the <a> singleton.
-const downloadBlobAsFile = (function()
-{
-    let a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    return function (blob, file_name)
-    {
-        let url = window.URL.createObjectURL(blob);
-        a.href = url;
-        a.download = file_name;
-        a.click();
-        window.URL.revokeObjectURL(url);
-    }
-})();
-
-function encodeStringAsBlob(string)
-{
-    let bytes = new TextEncoder().encode(string);
-    let blob = new Blob([bytes], {
+function encodeStringAsBlob(string) {
+    return new Blob([new TextEncoder().encode(string)], {
         type: "application/json;charset=utf-8"
     });
-    return blob;
 }
 
+function exportFiles(includeHistory = true, includeSettings = true) {
+    chrome.storage.local.get(["threads", "settings"], function (result) {
+        const data = {};
+        let suffix = "";
 
-function importAny()
-{
-    let input = document.querySelector("#import-any");
-    let file = input.files[0];
-    if(!file)
-    {
-        console.warn(`unable to find a valid file`);
-        return;
-    }
-
-    let reader = new FileReader();
-    reader.onload = function(event)
-    {
-        let string = event.target.result;
-        let data = JSON.parse(string);
-
-        // backwards compatability
-        if(Array.isArray(data))
-        {
-            data = {threads:data};
+        if (includeHistory) {
+            data.threads = Array.isArray(result.threads) ? result.threads : [];
+            suffix += "-History";
         }
 
-        importThreads(data);
-        importPrompts(data);
-        importSettings(data);
-    }
-    reader.onerror = function(event)
-    {
-        console.log(`Error occured in file reader: `);
-        console.log(event);
-    }
-    reader.readAsText(file);
-    animate(id("import-label"))
+        if (includeSettings) {
+            data.settings = result.settings || {};
+            suffix += "-Settings";
+        }
+
+        const fileName = `GPTgps-Archive${suffix}_${new Date().toISOString()}.json`;
+        downloadBlobAsFile(encodeStringAsBlob(JSON.stringify(data)), fileName);
+    });
 }
 
-// takes an object that looks like {threads:data[]}
 function importThreads(data) {
     chrome.storage.local.get({threads: []}, function (result) {
-        console.log(`Importing threads...`);
-        let t = result.threads;
+        const existing = Array.isArray(result.threads) ? result.threads : [];
+        const incoming = Array.isArray(data.threads) ? data.threads : [];
 
-        // validate each thread before adding
-        let new_t = data.threads ?? [];
-        for(let i = 0, len = new_t.length; i < len; i++) {
-            let thread = new_t[i];
-            let id = thread.id;
-
-            // in case there is no ID, we have to use a simpler heuristic.
-            // if date and convo is the same, for all intents and purposes it is the same, bookmark/id don't matter.
-            if(!id) {
-                // if found duplicate, then do nothing
-                if(get_thread_in_list_deep_equals(thread, t)) {
-                    continue;
-                }
-                else {
-                    // otherwise, it is completely original; give the thread a random new ID
-                    thread.id = generateUUID();
-                }
-            }
-
-            // If the ID is the same as one of our own, that means it is the same thread and we should ignore it.
-            if(id && getObjectById(id, t) !== null) {
+        for (let i = 0; i < incoming.length; i += 1) {
+            const thread = incoming[i];
+            if (!thread || typeof thread !== "object") {
                 continue;
             }
 
-            t.push(thread);
+            if (!thread.id) {
+                thread.id = generateUUID();
+            }
+
+            if (getObjectById(thread.id, existing) !== null) {
+                continue;
+            }
+
+            existing.push(thread);
         }
 
-        chrome.storage.local.set({threads: t});
+        chrome.storage.local.set({threads: existing});
     });
 }
+
 function importSettings(data) {
-    if (data.settings) {
+    if (data && data.settings && typeof data.settings === "object") {
         chrome.storage.local.set({settings: data.settings});
     }
 }
 
-function importPrompts(data) {
-    chrome.storage.local.get({prompts: []}, function (result) {
-        console.log(`Importing prompts...`);
+function animateButton(node) {
+    if (!node) {
+        return;
+    }
+    const original = node.innerHTML;
+    node.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+    setTimeout(() => {
+        node.innerHTML = original;
+    }, 900);
+}
 
-        let prompts = result.prompts;
-        let new_prompts = data.prompts ?? [];
-        let newSync = []
-        for(let i = 0, len = new_prompts.length; i < len; i++) {
-            let prompt = new_prompts[i];
-            let id = prompt.id;
+function importAny() {
+    const input = document.getElementById("import-any");
+    const file = input && input.files ? input.files[0] : null;
+    if (!file) {
+        return;
+    }
 
-            // If the ID is the same as one of our own, ignore it.
-            // thankfully, all prompts have IDs
-            if(id && getObjectById(id, prompts) !== null) {
-                continue;
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        try {
+            let data = JSON.parse(event.target.result);
+            if (Array.isArray(data)) {
+                data = {threads: data};
             }
-            newSync.push(id)
-
-            prompts.push(prompt);
+            importThreads(data);
+            importSettings(data);
+            animateButton(document.getElementById("import-label"));
+            hydrateStorageStats();
+        } catch (error) {
+            console.error("Failed to import archive", error);
         }
-
-        chrome.storage.local.get({"newPrompts": []}, function (result){
-            let newP = result.newPrompts
-            let newList = newP.concat(newSync)
-            console.log(newList)
-            chrome.storage.local.set({"newPrompts": newList})
-        })
-
-        chrome.storage.local.set({prompts: prompts});
-    });
+    };
+    reader.readAsText(file);
 }
 
-function animate(button){
-    let html = button.innerHTML
-    button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`
-    setTimeout(() => button.innerHTML = html, 1000)
-}
-
-function showDeletePrompts(){
-    id("confirm-prompts").classList.remove("d-none")
-}
-
-function deletePrompts() {
-    chrome.storage.local.get({prompts: []}, function (result){
-        chrome.storage.local.get({"deletedPrompts": []}, function (r){
-            let dp = r.deletedPrompts
-            let prompts = result.prompts
-            for (let prompt of prompts){
-                dp.push(prompt.id)
-            }
-            chrome.storage.local.set({"deletedPrompts": dp})
-            chrome.storage.local.set({prompts: []})
-            id("confirm-prompts").classList.add("d-none")
-            animate(id("delete-prompts"))
-        })
-    })
-}
-
-function showDeleteHistory(){
-    id("confirm-history").classList.remove("d-none")
+function showDeleteHistory() {
+    document.getElementById("confirm-history").classList.remove("d-none");
 }
 
 function deleteHistory() {
-    chrome.storage.local.set({threads: []})
-    id("confirm-history").classList.add("d-none")
-    animate(id("delete-history"))
+    chrome.storage.local.set({threads: []}, function () {
+        document.getElementById("confirm-history").classList.add("d-none");
+        animateButton(document.getElementById("delete-history"));
+        hydrateStorageStats();
+    });
 }
 
-function id(el) {
-    return document.getElementById(el)
+function countBookmarks(threads) {
+    return threads.filter((thread) => Boolean(thread && thread.favorite)).length;
 }
 
-document.querySelector("#export-all").addEventListener('click', exportFiles)
-document.querySelector("#import-any").addEventListener('change', importAny)
-id("export-history").addEventListener("click", () => exportFiles(true, false, false))
-id("export-prompts").addEventListener("click", () => exportFiles(false, true, false))
-id("export-settings").addEventListener("click", () => exportFiles(false, false, true))
-id("delete-prompts").addEventListener("click", showDeletePrompts)
-id("confirm-prompts").addEventListener("click", deletePrompts)
-id("delete-history").addEventListener("click", showDeleteHistory)
-id("confirm-history").addEventListener("click", deleteHistory)
+function countNavSessions(allStorage) {
+    return Object.keys(allStorage).filter((key) => key.indexOf(NAV_STORAGE_PREFIX) === 0).length;
+}
+
+function setStat(name, value) {
+    const node = document.querySelector(`[data-stat="${name}"]`);
+    if (node) {
+        node.textContent = String(value);
+    }
+}
+
+function hydrateStorageStats() {
+    chrome.storage.local.get(null, function (result) {
+        const threads = Array.isArray(result.threads) ? result.threads : [];
+        setStat("threads", threads.length);
+        setStat("bookmarks", countBookmarks(threads));
+        setStat("nav-sessions", countNavSessions(result));
+        setStat("settings", result.settings ? "已读取" : "默认");
+    });
+}
+
+document.getElementById("export-all").addEventListener("click", () => exportFiles(true, true));
+document.getElementById("export-history").addEventListener("click", () => exportFiles(true, false));
+document.getElementById("export-settings").addEventListener("click", () => exportFiles(false, true));
+document.getElementById("import-any").addEventListener("change", importAny);
+document.getElementById("delete-history").addEventListener("click", showDeleteHistory);
+document.getElementById("confirm-history").addEventListener("click", deleteHistory);
+
+hydrateStorageStats();
