@@ -819,11 +819,43 @@ function isTrustedAiSender(sender) {
     if (!sender || sender.id !== chrome.runtime.id) {
         return false;
     }
-    if (!sender.tab || !sender.tab.url) {
+    const candidateUrls = [];
+    if (sender.tab && sender.tab.url) {
+        candidateUrls.push(String(sender.tab.url || ""));
+    }
+    if (sender.url) {
+        candidateUrls.push(String(sender.url || ""));
+    }
+    if (sender.origin) {
+        candidateUrls.push(String(sender.origin || ""));
+    }
+
+    if (!candidateUrls.length) {
         return true;
     }
-    const url = String(sender.tab.url || "").toLowerCase();
-    return url.startsWith("https://chatgpt.com/") || url.startsWith("https://chat.openai.com/");
+
+    return candidateUrls.some((candidate) => {
+        const url = String(candidate || "").toLowerCase();
+        if (!url) {
+            return false;
+        }
+        return (
+            url.startsWith("https://chatgpt.com/") ||
+            url.startsWith("https://chat.openai.com/") ||
+            url.startsWith("https://gemini.google.com/") ||
+            url.startsWith("https://chat.qwen.ai/") ||
+            url.startsWith("https://qwen.ai/") ||
+            url.startsWith("https://www.qwen.ai/") ||
+            url.startsWith("https://tongyi.com/") ||
+            url.startsWith("https://www.tongyi.com/") ||
+            url.startsWith("https://qianwen.com/") ||
+            url.startsWith("https://www.qianwen.com/") ||
+            url.startsWith("https://doubao.com/") ||
+            url.startsWith("https://www.doubao.com/") ||
+            url.startsWith("https://claude.ai/") ||
+            url.startsWith(`chrome-extension://${chrome.runtime.id}/`)
+        );
+    });
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
