@@ -93,17 +93,17 @@ Stable for day-to-day use:
 - Gemini
 - Qwen
 - Claude
+- Doubao
 
 Still being refined:
 
-- Doubao image-only messages are not fully represented as prompt entries yet.
 - Consecutive image-only messages are planned to collapse into a single expandable prompt group in a later update.
 
 ## Known Limitations
 
 - AI summaries depend on the provider and API key you configure.
 - Multi-site adapters rely on live site DOM structure, so selector recalibration may be needed after upstream UI changes.
-- Doubao image-only message groups are not fully handled in this release.
+- Image-only turns are preserved with placeholders such as `[Image-only message]`, but richer grouping for consecutive image-only turns is still planned.
 
 ## Project Positioning
 
