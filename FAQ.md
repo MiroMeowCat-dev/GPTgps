@@ -10,15 +10,15 @@ We understand that your data is important to you, and we want to assure you that
 
 **I found a bug!**
 
-We're sorry to hear that you've encountered a bug. If you could please raise an issue on our GitHub repository (https://github.com/benf2004/ChatGPT-Prompt-Genius/issues), we'll work on resolving the problem as soon as possible. If you're feeling adventurous, you can also open a pull request to fix the bug yourself and be the change you want to see in the world!
+Please raise an issue on the GPTgps GitHub repository: https://github.com/MiroMeowCat-dev/GPTgps/issues
 
 **I have a feature idea!**
 
-We're always looking for ways to improve our extension, and we would love to hear your ideas. Please use the discussions on our GitHub repository https://github.com/benf2004/ChatGPT-Prompt-Genius/discussions to share your thoughts.
+Please use the GPTgps GitHub repository discussions or issues to share ideas: https://github.com/MiroMeowCat-dev/GPTgps
 
 **Who is "we"?**
 
-This project is open-source and we encourage you to read the code on our GitHub repository https://github.com/benf2004/ChatGPT-Prompt-Genius. If you see anything that needs improvement, feel free to open an issue or pull request.
+This project is open-source and we encourage you to read the code on the GPTgps GitHub repository: https://github.com/MiroMeowCat-dev/GPTgps
 
 **Can I delete something I've shared via link?**
 

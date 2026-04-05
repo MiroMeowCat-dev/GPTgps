@@ -2,6 +2,7 @@
 
 - Rebranded extension identity to GPTgps (name/description/icon refresh)
 - Added robust conversation navigation sidebar for ChatGPT long-task workflows
+- Expanded navigation support to Gemini, Qwen, Doubao, and Claude
 - Added segment-based organization with manual split and rename
 - Added Mark checkpoints with jump and reposition capabilities
 - Added pin/search/note flow for prompt and marker timeline items
