@@ -32,7 +32,7 @@ function isPaidSubscriptionActive() {
     if (result == undefined){ // see history resync - this should be accurate but sometimes could be slow
         result = (document.getElementById("plusNetwork")?.value === "true")
     }
-    if (result == undefined){ // see prompt-inject - gets the user setting from storage.
+    if (result == undefined){ // fallback when the manual subscription flag has not been injected.
         result = (document.getElementById("plusManual")?.value === "true")
     }
     return result;
